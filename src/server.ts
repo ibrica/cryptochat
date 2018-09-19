@@ -1,11 +1,10 @@
-#!/usr/bin/env node
 /**
  * Module dependencies.
  */
-const app = require('../app');
-const debug = require('debug')('consultio:server');
-const http = require('http');
-const socketio = require('../socketio')
+import * as app from './app';
+import * as http from 'http';
+import * as socketio from  './socketio';
+const debug = require('debug')('cryptochat:server');
 
 /**
  * Get port from environment and store in Express.
@@ -13,6 +12,7 @@ const socketio = require('../socketio')
 
 const port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
+
 
 /**
  * Create HTTP server.
@@ -36,7 +36,7 @@ const io = socketio(server)
  */
 
 function normalizePort(val) {
-  let port = parseInt(val, 10);
+  let port = parseInt(val);
 
   if (isNaN(port)) {
     // named pipe
@@ -90,3 +90,5 @@ function onListening() {
     : 'port ' + addr.port;
   debug('Listening on ' + bind);
 }
+
+export default server;

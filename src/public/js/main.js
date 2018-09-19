@@ -22,9 +22,7 @@ const sdpConstraints = {
 
 /////////////////////////////////////////////
 
-var room = 'foo';
-// Could prompt for room name:
-// room = prompt('Enter room name:');
+room = prompt('Enter room name:');
 
 var socket = io.connect();
 
@@ -211,18 +209,17 @@ function requestTurn(turnURL) {
   if (!turnExists) {
     console.log('Getting TURN server from ', turnURL);
     // No TURN server. Get one from computeengineondemand.appspot.com:
-    var xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function() {
-      if (xhr.readyState === 4 && xhr.status === 200) {
-        var turnServer = JSON.parse(xhr.responseText);
+    let xhr = new XMLHttpRequest();
+    xhr.load();
+    xhr.addEventListener("load", () => {
+      let turnServer = JSON.parse(xhr.responseText);
         console.log('Got TURN server: ', turnServer);
         pcConfig.iceServers.push({
           'urls': 'turn:' + turnServer.username + '@' + turnServer.turn,
           'credential': turnServer.password
         });
         turnReady = true;
-      }
-    };
+    });
     xhr.open('GET', turnURL, true);
     xhr.send();
   }

@@ -1,17 +1,18 @@
 /**
  * Start and configure socket.io
  */
-const socketIO = require('socket.io');
+import * as socketIO from 'socket.io' 
+import * as os from 'os'
 
-module.exports =  httpServer => {
+export default  httpServer => {
         let io = socketIO(httpServer, {});
     
         io.sockets.on('connection', function(socket) {
 
         // convenience function to log server messages on the client
-        function log() {
-          var array = ['Message from server:'];
-          array.push.apply(array, arguments);
+        function log(...args: any[]) {
+          let array:Array<any> = ['Message from server:']
+          array.push.apply(array, args);
           socket.emit('log', array);
         }
       
