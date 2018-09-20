@@ -1,9 +1,17 @@
-import * as express from 'express';
-const router = express.Router();
+/**
+ * Default routes
+ */
 
-/* GET home page. */
-router.get('/', function(req, res, next) {
+import { Router, Request, Response, NextFunction } from "express";
+
+const router: Router = Router();
+
+/**
+ * Home page
+ */
+router.get("/", (req: Request, res: Response, next: NextFunction) => {
   res.render('index', { title: 'P2P Consulting' });
 });
 
-export default router;
+export const indexRoutes: Router = router;
+

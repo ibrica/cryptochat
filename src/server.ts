@@ -1,9 +1,10 @@
 /**
  * Module dependencies.
  */
-import * as app from './app';
+import {Application} from 'express';
+import app from './app';
 import * as http from 'http';
-import * as socketio from  './socketio';
+import {SocketIO} from  './socketio';
 const debug = require('debug')('cryptochat:server');
 
 /**
@@ -29,7 +30,7 @@ server.on('error', onError);
 server.on('listening', onListening);
 
 // start socketio
-const io = socketio(server)
+SocketIO.bootstrap(server);
 
 /**
  * Normalize a port into a number, string, or false.

@@ -1,40 +1,79 @@
-import * as createError from 'http-errors';
 import * as express from 'express';
 import * as path from 'path';
 import * as cookieParser from 'cookie-parser';
 import * as logger from 'morgan';
-import * as indexRouter from './routes/index';
-import * as usersRouter from './routes/users';
+import { Request, Response, NextFunction } from "express";
+import { indexRoutes } from './routes';
+import { userRoutes } from './routes/users';
 
-const app:express.Application = express();
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
+class App {
+  public app: express.Application;
 
-app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+  constructor() {
+    this.app = express();
+    
+    this.middlewares();
+    this.routes();
+    this.catchErrors();
+  }
+  
+  
+  /**
+   * Middlewares
+   */
+  private middlewares(): void {
+    // this.app.use(favicon(path.join(__dirname, "public", "favicon.ico")));
+    // view engine setup
+    this.app.set('views', path.join(__dirname, '../views'));
+    this.app.set('view engine', 'ejs');
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+    this.app.use(logger('dev'));
+    this.app.use(express.json());
+    this.app.use(express.urlencoded({ extended: false }));
+    this.app.use(cookieParser());
+    this.app.use(
+      express.static(path.join(__dirname, "../public"), { maxAge: 31557600000 })
+    );
+  }
+  
+  
+  /**
+   * Error Handlers
+   */
+  private catchErrors(): void {
+    this.app.use((req: Request, res: Response, next: NextFunction) => {
+      const err: any = new Error("Not Found");
+      err.status = 404;
+      
+      next(err);
+    });
+    
+    this.app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+      const statusCode = err.status || 500;
+      
+      res.locals.message = err.message;
+      res.locals.error = req.app.get("env") === "development" ? err : {};
+      
+      res.status(statusCode).send("Server Error");
+    });
+  }
+  
+  
+  /**
+   * Api Routes
+   */
+  private routes(): void {
+    this.app.use("/", indexRoutes);
+    this.app.use("/user", userRoutes);
+  }
 
-// catch 404 and forward to error handler
-app.use((req, res, next)  => {
-  next(createError(404));
-});
+ 
 
-// error handler
-app.use((err, req, res, next) => {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+}
+export default new App().app;
 
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
-});
 
-export default app;
+
+
+
