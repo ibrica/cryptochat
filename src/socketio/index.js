@@ -1,19 +1,23 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
+exports.__esModule = true;
 /**
  * Start and configure socket.io
  */
-const socketIO = require("socket.io");
-const os = require("os");
-class SocketIO {
-    constructor(httpServer) {
+var socketIO = require("socket.io");
+var os = require("os");
+var SocketIO = /** @class */ (function () {
+    function SocketIO(httpServer) {
         this.io = socketIO(httpServer, {});
         this.io.sockets.on('connection', this.configSocket);
     }
-    configSocket(socket) {
+    SocketIO.prototype.configSocket = function (socket) {
         // convenience function to log server messages on the client
-        function log(...args) {
-            let array = ['Message from server:'];
+        function log() {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            var array = ['Message from server:'];
             array.push.apply(array, args);
             socket.emit('log', array);
         }
@@ -34,10 +38,10 @@ class SocketIO {
             }
             else if (numClients === 1) {
                 log('Client ID ' + socket.id + ' joined room ' + room);
-                this.io.sockets.in(room).emit('join', room);
+                this.io.sockets["in"](room).emit('join', room);
                 socket.join(room);
                 socket.emit('joined', room, socket.id);
-                this.io.sockets.in(room).emit('ready');
+                this.io.sockets["in"](room).emit('ready');
             }
             else { // max two clients
                 socket.emit('full', room);
@@ -56,10 +60,10 @@ class SocketIO {
         socket.on('bye', function () {
             console.log('received bye');
         });
-    }
-}
-SocketIO.bootstrap = (httpServer) => {
-    new SocketIO(httpServer);
-};
+    };
+    SocketIO.bootstrap = function (httpServer) {
+        new SocketIO(httpServer);
+    };
+    return SocketIO;
+}());
 exports.SocketIO = SocketIO;
-//# sourceMappingURL=index.js.map

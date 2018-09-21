@@ -9,8 +9,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "dev": "ts-node ./lib/server.ts",
-    "start": "nodemon ./dist/server.js",
+    "dev": "ts-node ./src/server.ts",
+    "start": "node ./dist/server.js",
     "prod": "npm run build && npm run start"
   },
   "dependencies": {
@@ -29,7 +29,6 @@
     "@types/node": "^10.10.1",
     "@types/socket.io": "^1.4.38",
     "@types/stellar-sdk": "^0.8.6",
-    "@types/webrtc": "0.0.23",
-    "nodemon": "^1.18.4"
+    "@types/webrtc": "0.0.23"
   }
 }

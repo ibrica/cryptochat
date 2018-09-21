@@ -1,13 +1,13 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const express = require("express");
-const path = require("path");
-const cookieParser = require("cookie-parser");
-const logger = require("morgan");
-const routes_1 = require("./routes");
-const users_1 = require("./routes/users");
-class App {
-    constructor() {
+exports.__esModule = true;
+var express = require("express");
+var path = require("path");
+var cookieParser = require("cookie-parser");
+var logger = require("morgan");
+var routes_1 = require("./routes");
+var users_1 = require("./routes/users");
+var App = /** @class */ (function () {
+    function App() {
         this.app = express();
         this.middlewares();
         this.routes();
@@ -16,7 +16,7 @@ class App {
     /**
      * Middlewares
      */
-    middlewares() {
+    App.prototype.middlewares = function () {
         // this.app.use(favicon(path.join(__dirname, "public", "favicon.ico")));
         // view engine setup
         this.app.set('views', path.join(__dirname, '../views'));
@@ -26,30 +26,30 @@ class App {
         this.app.use(express.urlencoded({ extended: false }));
         this.app.use(cookieParser());
         this.app.use(express.static(path.join(__dirname, "../public"), { maxAge: 31557600000 }));
-    }
+    };
     /**
      * Error Handlers
      */
-    catchErrors() {
-        this.app.use((req, res, next) => {
-            const err = new Error("Not Found");
+    App.prototype.catchErrors = function () {
+        this.app.use(function (req, res, next) {
+            var err = new Error("Not Found");
             err.status = 404;
             next(err);
         });
-        this.app.use((err, req, res, next) => {
-            const statusCode = err.status || 500;
+        this.app.use(function (err, req, res, next) {
+            var statusCode = err.status || 500;
             res.locals.message = err.message;
             res.locals.error = req.app.get("env") === "development" ? err : {};
             res.status(statusCode).send("Server Error");
         });
-    }
+    };
     /**
      * Api Routes
      */
-    routes() {
+    App.prototype.routes = function () {
         this.app.use("/", routes_1.indexRoutes);
         this.app.use("/user", users_1.userRoutes);
-    }
-}
-exports.default = new App().app;
-//# sourceMappingURL=app.js.map
+    };
+    return App;
+}());
+exports["default"] = new App().app;

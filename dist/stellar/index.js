@@ -7,17 +7,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
-    return result;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 // Classes required to create new account
 const stellar_sdk_1 = require("stellar-sdk");
-const fetch = __importStar(require("node-fetch"));
+const fetch = require("node-fetch");
 /**
  *  Generates a keypair and funds account with friendbot
  */
