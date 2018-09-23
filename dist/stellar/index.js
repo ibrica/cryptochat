@@ -39,36 +39,40 @@ function run() {
         const payload = yield response.json();
     });
 }
-function pay() {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            // Tell the Stellar SDK you are using the testnet
-            stellar_sdk_1.Network.useTestNetwork();
-            // point to testnet host
-            const stellarServer = new stellar_sdk_1.Server('https://horizon-testnet.stellar.org');
-            // Never put values like the an account seed in code.
-            const provisionerKeyPair = stellar_sdk_1.Keypair.fromSecret('SA72TGXRHE26WC5G5MTNURFUFBHZHTIQKF5AQWRXJMJGZUF4XY6HFWJ4');
-            // Load account from Stellar
-            const provisioner = yield stellarServer.loadAccount(provisionerKeyPair.publicKey());
-            console.log('creating account in ledger', keypair.publicKey());
-            const transaction = new stellar_sdk_1.TransactionBuilder(provisioner)
-                .addOperation(
+/*
+export async function pay(){
+
+try {
+    // Tell the Stellar SDK you are using the testnet
+    Network.useTestNetwork();
+    // point to testnet host
+    const stellarServer = new Server('https://horizon-testnet.stellar.org');
+  
+    // Never put values like the an account seed in code.
+    //const provisionerKeyPair = Keypair.fromSecret('SA72TGXRHE26WC5G5MTNURFUFBHZHTIQKF5AQWRXJMJGZUF4XY6HFWJ4')
+  
+    // Load account from Stellar
+    const provisioner = await stellarServer.loadAccount(provisionerKeyPair.publicKey())
+  
+    console.log('creating account in ledger', keypair.publicKey())
+    const transaction = new TransactionBuilder(provisioner)
+          .addOperation(
             // Operation to create new accounts
-            stellar_sdk_1.Operation.createAccount({
-                destination: keypair.publicKey(),
-                startingBalance: '2'
-            })).build();
-            // Sign the transaction above
-            transaction.sign(provisionerKeyPair);
-            // Submit transaction to the server
-            const result = yield stellarServer.submitTransaction(transaction);
-            console.log('Account created: ', result);
-        }
-        catch (e) {
-            console.log('Stellar account not created.', e);
-        }
-    });
-}
-exports.pay = pay;
-;
+            Operation.createAccount({
+              destination: keypair.publicKey(),
+              startingBalance: '2'
+            })
+          ).build()
+  
+    // Sign the transaction above
+    transaction.sign(provisionerKeyPair)
+  
+    // Submit transaction to the server
+    const result = await stellarServer.submitTransaction(transaction);
+    console.log('Account created: ', result)
+  } catch (e) {
+    console.log('Stellar account not created.', e)
+  }
+};
+*/
 //# sourceMappingURL=index.js.map

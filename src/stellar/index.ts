@@ -39,7 +39,7 @@ async function run() {
   const response = await fetch(url)
   const payload = await response.json()
 }
-  
+  /*
 export async function pay(){
 
   try {
@@ -49,7 +49,7 @@ export async function pay(){
       const stellarServer = new Server('https://horizon-testnet.stellar.org');
     
       // Never put values like the an account seed in code.
-      const provisionerKeyPair = Keypair.fromSecret('SA72TGXRHE26WC5G5MTNURFUFBHZHTIQKF5AQWRXJMJGZUF4XY6HFWJ4')
+      //const provisionerKeyPair = Keypair.fromSecret('SA72TGXRHE26WC5G5MTNURFUFBHZHTIQKF5AQWRXJMJGZUF4XY6HFWJ4')
     
       // Load account from Stellar
       const provisioner = await stellarServer.loadAccount(provisionerKeyPair.publicKey())
@@ -74,4 +74,5 @@ export async function pay(){
       console.log('Stellar account not created.', e)
     }
 };
+*/
   

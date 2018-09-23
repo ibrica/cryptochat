@@ -3,7 +3,9 @@
  */
 import * as socketIO from 'socket.io' 
 import * as os from 'os'
-import {Server}  from 'http';
+import {Server} from 'http';
+
+let io:SocketIO.Server; //
 
 export class SocketIO{
 
@@ -11,12 +13,12 @@ export class SocketIO{
     new SocketIO(httpServer);
   };
 
-  private  io:SocketIO.Server;
+
 
   constructor (httpServer:Server){
-      this.io = socketIO(httpServer, {});
+      io = socketIO(httpServer, {});
     
-      this.io.sockets.on('connection',this.configSocket)
+      io.sockets.on('connection', this.configSocket)
   }
 
   private configSocket(socket){
@@ -27,17 +29,17 @@ export class SocketIO{
       socket.emit('log', array);
     }
   
-    socket.on('message', function(message) {
+    socket.on('message', (message) =>{
       log('Client said: ', message);
       // for a real app, would be room-only (not broadcast)
       socket.broadcast.emit('message', message);
     });
   
-    socket.on('create or join', function(room) {
+    socket.on('create or join', (room) => {
       log('Received request to create or join room ' + room);
   
-      var clientsInRoom = this.io.sockets.adapter.rooms[room];
-      var numClients = clientsInRoom ? Object.keys(clientsInRoom.sockets).length : 0;
+      let clientsInRoom = io.sockets.adapter.rooms[room];
+      let numClients = clientsInRoom ? Object.keys(clientsInRoom.sockets).length : 0;
       log('Room ' + room + ' now has ' + numClients + ' client(s)');
   
       if (numClients === 0) {
@@ -47,19 +49,19 @@ export class SocketIO{
   
       } else if (numClients === 1) {
         log('Client ID ' + socket.id + ' joined room ' + room);
-        this.io.sockets.in(room).emit('join', room);
+        io.sockets.in(room).emit('join', room);
         socket.join(room);
         socket.emit('joined', room, socket.id);
-        this.io.sockets.in(room).emit('ready');
+        io.sockets.in(room).emit('ready');
       } else { // max two clients
         socket.emit('full', room);
       }
     });
   
-    socket.on('ipaddr', function() {
+    socket.on('ipaddr', () => {
       var ifaces = os.networkInterfaces();
       for (var dev in ifaces) {
-        ifaces[dev].forEach(function(details) {
+        ifaces[dev].forEach((details) => {
           if (details.family === 'IPv4' && details.address !== '127.0.0.1') {
             socket.emit('ipaddr', details.address);
           }
@@ -67,7 +69,7 @@ export class SocketIO{
       }
     });
   
-    socket.on('bye', function(){
+    socket.on('bye', () => {
       console.log('received bye');
     });  
   }

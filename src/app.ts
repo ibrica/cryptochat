@@ -5,6 +5,9 @@ import * as logger from 'morgan';
 import { Request, Response, NextFunction } from "express";
 import { indexRoutes } from './routes';
 import { userRoutes } from './routes/users';
+import passport from "passport";
+// API keys and Passport configuration
+import * as passportConfig from "./config/passport";
 
 
 class App {
