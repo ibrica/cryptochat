@@ -74,3 +74,6 @@ typings/
 
 #TS Builds
 dist
+
+#Settings
+setings.ts
