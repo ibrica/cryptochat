@@ -13,8 +13,6 @@ export class SocketIO{
     new SocketIO(httpServer);
   };
 
-
-
   constructor (httpServer:Server){
       io = socketIO(httpServer, {});
     

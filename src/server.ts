@@ -1,10 +1,9 @@
 /**
- * Module dependencies.
+ * Application server
  */
-import {Application} from 'express';
 import app from './app';
 import * as http from 'http';
-import {SocketIO} from  './socketio';
+import {SocketIO} from  './config/socketio';
 const debug = require('debug')('cryptochat:server');
 
 /**

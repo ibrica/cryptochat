@@ -73,7 +73,7 @@ socket.on('message', function(message) {
   }
 });
  ////////////////////////////////////////////////////
- const localVideo = document.querySelector('#localVideo');
+const localVideo = document.querySelector('#localVideo');
 const remoteVideo = document.querySelector('#remoteVideo');
  navigator.mediaDevices.getUserMedia({
   audio: false,
@@ -83,7 +83,9 @@ const remoteVideo = document.querySelector('#remoteVideo');
 .catch(function(e) {
   alert('getUserMedia() error: ' + e.name);
 });
- function gotStream(stream) {
+
+
+function gotStream(stream) {
   console.log('Adding local stream.');
   localStream = stream;
   localVideo.srcObject = stream;
