@@ -1,8 +1,8 @@
 /**
  * Start and configure socket.io
  */
-import * as socketIO from 'socket.io' 
-import * as os from 'os'
+import * as socketIO from 'socket.io';
+import * as os from 'os';
 import {Server} from 'http';
 
 let io:SocketIO.Server; //
@@ -15,18 +15,17 @@ export class SocketIO{
 
   constructor (httpServer:Server){
       io = socketIO(httpServer, {});
-    
       io.sockets.on('connection', this.configSocket)
   }
 
   private configSocket(socket){
     // convenience function to log server messages on the client
     function log(...args: any[]) {
-      let array:Array<any> = ['Message from server:']
+      let array: any[] = ['Message from server:'];
       array.push.apply(array, args);
       socket.emit('log', array);
     }
-  
+
     socket.on('message', (message) =>{
       log('Client said: ', message);
       // for a real app, would be room-only (not broadcast)
@@ -57,7 +56,7 @@ export class SocketIO{
     });
   
     socket.on('ipaddr', () => {
-      var ifaces = os.networkInterfaces();
+      let ifaces = os.networkInterfaces();
       for (var dev in ifaces) {
         ifaces[dev].forEach((details) => {
           if (details.family === 'IPv4' && details.address !== '127.0.0.1') {
@@ -66,9 +65,9 @@ export class SocketIO{
         });
       }
     });
-  
+
     socket.on('bye', () => {
       console.log('received bye');
-    });  
+    });
   }
 }

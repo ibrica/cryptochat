@@ -1,18 +1,14 @@
 import * as express from 'express';
-import * as path from 'path';
 import * as cookieParser from 'cookie-parser';
 import * as logger from 'morgan';
 import { Request, Response, NextFunction } from 'express';
 import { indexRoutes } from './routes';
 import { userRoutes } from './routes/users';
-import session from 'express-session';
-import mongo from 'connect-mongo';
-import * as bluebird from 'bluebird';
-import passport from 'passport';
-// API keys and Passport configuration
-import * as passportConfig from './config/passport';
-import {SESSION_SECRET, MONGODB_URI} from './config/settings';
+import {MONGODB_URI} from './config/settings';
 import * as mongoose from 'mongoose';
+import * as bluebird from 'bluebird';
+import * as path from 'path';
+import * as history from 'connect-history-api-fallback';
 
 
 class App {
@@ -35,33 +31,22 @@ class App {
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: false }));
     this.app.use(cookieParser());
+    // History mode for Vue
+    this.app.use(history());
+
+
   }
 
 
   /**
    * Config mongo database
    */
-
   private database(): void {
-    const MongoStore = mongo(session);
     // Connect to MongoDB
-    const mongoUrl = MONGODB_URI;
-    (<any>mongoose).Promise = bluebird;
-    mongoose.connect(mongoUrl, {useMongoClient: true}).then(
-    () => { /** ready to use. The `mongoose.connect()` promise resolves to undefined. */ },
-    ).catch(err => {
-      console.log('MongoDB connection error. Please make sure MongoDB is running. ' + err);
-      // process.exit();
-    });
-    this.app.use(session({
-        resave: true,
-        saveUninitialized: true,
-        secret: SESSION_SECRET,
-        store: new MongoStore({
-          url: mongoUrl,
-          autoReconnect: true,
-      }),
-    }));
+    (<any> mongoose).Promise = bluebird;  // es6 as promise lib
+    mongoose.connect(MONGODB_URI, { promiseLibrary: bluebird, useNewUrlParser: true })
+      .then(() =>  console.log('connection succesful'))
+      .catch((err) => console.error(err));
   }
 
   /**
@@ -85,10 +70,8 @@ class App {
    * Api Routes
    */
   private routes(): void {
-    this.app.use('/', indexRoutes);
+    this.app.use('/', express.static(path.join(__dirname, '../../client/dist/')));     //Serve vue
     this.app.use('/user', userRoutes);
   }
-
-
 }
 export default new App().app;

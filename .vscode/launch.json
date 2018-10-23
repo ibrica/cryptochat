@@ -5,12 +5,12 @@
         "type": "node",
         "request": "launch",
         "name": "Debug TS",
-        "preLaunchTask": "typescript",
-        "program": "${workspaceFolder}/src/server.ts",
+       // "preLaunchTask": "typescript",
+        "program": "${workspaceFolder}/server/src/server.ts",
         "cwd": "${workspaceFolder}",
         "protocol": "inspector",
         "outFiles": [
-          "${workspaceFolder}/dist/**/*.js"
+          "${workspaceFolder}/server/dist/**/*.js"
         ]
       }
     ]

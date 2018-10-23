@@ -1,17 +1,13 @@
 
 {
     "compilerOptions": {
-      "target": "es5",
-      "module": "esnext",
-      "strict": true,
-      "importHelpers": true,
+      "module": "commonjs",
       "moduleResolution": "node",
-      "experimentalDecorators": true,
-      "esModuleInterop": true,
-      "allowSyntheticDefaultImports": true,
-      "noImplicitAny": false,
+      "pretty": true,
       "sourceMap": true,
-      "inlineSources": true,
+      "target": "es6",
+      "strict": false,
+      "noImplicitAny": false,
       "outDir": "dist",
       "baseUrl": ".",
       "paths": {
@@ -22,8 +18,7 @@
       },
       "types": [
          "lodash",
-         "node",
-          "webpack-env"
+         "node"
       ],
       "typeRoots": [
          "./node_modules/@types"
@@ -36,5 +31,7 @@
       "esnext"
     ],
     "include": [
+      "src/**/*.ts",
+      "tests/**/*.ts",
     ],
   }
