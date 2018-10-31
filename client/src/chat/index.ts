@@ -1,3 +1,59 @@
+import io from 'socket.io-client';
+import Peer from 'simple-peer';
+import Debug from 'debug';
+
+const debug = Debug('client');
+const socket = io.connect();
+const useTrickle: boolean = true; // Use trickle default
+const peers: Peer.Instance[] = [];
+
+
+
+const a: number = 10;
+export default a;
+
+
+socket.on('connect', () => {
+  debug('Connected to signalling server, Peer ID: %s', socket.id);
+});
+
+socket.on('peer', (data) => {
+  const peerId: number = data.peerId;
+  const peer = new Peer({ initiator: data.initiator, trickle: useTrickle });
+
+  debug('Peer available for connection discovered from signalling server, Peer ID: %s', peerId);
+
+  socket.on('signal', (data) => {
+    if (data.peerId == peerId) {
+      debug('Received signalling data', data, 'from Peer ID:', peerId);
+      peer.signal(data.signal);
+    }
+  });
+
+  peer.on('signal', (data) => {
+    debug('Advertising signalling data', data, 'to Peer ID:', peerId);
+    socket.emit('signal', {
+      signal: data,
+      peerId,
+    });
+  });
+  peer.on('error', (e) => {
+    debug('Error sending connection to peer %s:', peerId, e);
+  });
+  peer.on('connect', () => {
+    debug('Peer connection established');
+  });
+  peer.on('data', (data) => {
+    debug('Recieved data from peer:', data);
+  });
+  peers[peerId] = peer;
+});
+
+
+
+
+
+/*
 let isChannelReady = false;
 let isInitiator = false;
 let isStarted = false;
@@ -186,7 +242,10 @@ function gotStream(stream) {
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function() {
       if (xhr.readyState === 4 && xhr.status === 200) {
-        var turnServer = JSON.parse(xhr.responseText);
+        var turnServer = JSON.pa
+        
+        
+        rse(xhr.responseText);
         console.log('Got TURN server: ', turnServer);
         pcConfig.iceServers.push({
           'urls': 'turn:' + turnServer.username + '@' + turnServer.turn,
@@ -222,3 +281,5 @@ function gotStream(stream) {
   pc.close();
   pc = null;
 }
+*/
+alert('Tu sam');

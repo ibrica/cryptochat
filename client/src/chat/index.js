@@ -1,15 +1,57 @@
-'use strict';
-var isChannelReady = false;
-var isInitiator = false;
-var isStarted = false;
-var localStream;
-var pc;
-var remoteStream;
-var turnReady;
+import io from 'socket.io-client';
+import Peer from 'simple-peer';
+import Debug from 'debug';
+var debug = Debug('client');
+var socket = io.connect();
+var useTrickle = true; // Use trickle default
+var peers = {};
+var a = 10;
+export default a;
+socket.on('connect', function () {
+    debug('Connected to signalling server, Peer ID: %s', socket.id);
+});
+socket.on('peer', function (data) {
+    var peerId = data.peerId;
+    var peer = new Peer({ initiator: data.initiator, trickle: useTrickle });
+    debug('Peer available for connection discovered from signalling server, Peer ID: %s', peerId);
+    socket.on('signal', function (data) {
+        if (data.peerId == peerId) {
+            debug('Received signalling data', data, 'from Peer ID:', peerId);
+            peer.signal(data.signal);
+        }
+    });
+    peer.on('signal', function (data) {
+        debug('Advertising signalling data', data, 'to Peer ID:', peerId);
+        socket.emit('signal', {
+            signal: data,
+            peerId: peerId,
+        });
+    });
+    peer.on('error', function (e) {
+        debug('Error sending connection to peer %s:', peerId, e);
+    });
+    peer.on('connect', function () {
+        debug('Peer connection established');
+        peer.send('hey peer');
+    });
+    peer.on('data', function (data) {
+        debug('Recieved data from peer:', data);
+    });
+    peers[peerId] = peer;
+});
+/*
+let isChannelReady = false;
+let isInitiator = false;
+let isStarted = false;
+let localStream;
+let pc;
+let remoteStream;
+let turnReady;
+
 const pcConfig = {
-  'iceServers': [{
-    'urls': 'stun:stun.l.google.com:19302'
-  }]
+  iceServers: [{
+    urls: 'stun:stun.l.google.com:19302',
+  }],
 };
  // Set up audio and video regardless of what devices are present.
 const sdpConstraints = {
@@ -29,19 +71,22 @@ room = prompt('Enter room name:');
   console.log('Created room ' + room);
   isInitiator = true;
 });
- socket.on('full', function(room) {
+
+socket.on('full', function(room) {
   console.log('Room ' + room + ' is full');
 });
- socket.on('join', function (room){
+
+socket.on('join', function (room){
   console.log('Another peer made a request to join room ' + room);
   console.log('This peer is the initiator of room ' + room + '!');
   isChannelReady = true;
  });
- socket.on('joined', function(room) {
+
+socket.on('joined', function(room) {
   console.log('joined: ' + room);
   isChannelReady = true;
  });
- socket.on('log', function(array) {
+socket.on('log', function(array) {
   console.log.apply(console, array);
 });
  ////////////////////////////////////////////////
@@ -183,7 +228,10 @@ function gotStream(stream) {
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function() {
       if (xhr.readyState === 4 && xhr.status === 200) {
-        var turnServer = JSON.parse(xhr.responseText);
+        var turnServer = JSON.pa
+        
+        
+        rse(xhr.responseText);
         console.log('Got TURN server: ', turnServer);
         pcConfig.iceServers.push({
           'urls': 'turn:' + turnServer.username + '@' + turnServer.turn,
@@ -219,3 +267,6 @@ function gotStream(stream) {
   pc.close();
   pc = null;
 }
+*/
+alert('Tu sam');
+//# sourceMappingURL=index.js.map

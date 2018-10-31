@@ -38,10 +38,6 @@
       <video id="localVideo" autoplay muted playsinline></video>
       <video id="remoteVideo" autoplay playsinline></video>
     </div>
-
-  
+    <!-- Adapter webrtc ? -->
 </template>
 
-    <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
-    <script src="js/main.js"></script>
-    <script src="/socket.io/socket.io.js"></script>

@@ -8,14 +8,14 @@
         </div>
       </div>
       <b-form @submit="onSubmit">
-        <b-form-group id="fieldsetHorizontal"
+      <b-form-group id="fieldsetHorizontal"
                   horizontal
                   :label-cols="4"
                   breakpoint="md"
                   label="Enter Username">
           <b-form-input id="username" :state="state" v-model.trim="login.username"></b-form-input>
-        </b-form-group>
-        <b-form-group id="fieldsetHorizontal"
+      </b-form-group>
+      <b-form-group id="fieldsetHorizontal"
                   horizontal
                   :label-cols="4"
                   breakpoint="md"
@@ -42,7 +42,7 @@ export default {
   methods: {
     onSubmit (evt) {
       evt.preventDefault()
-      axios.post(`http://localhost:3000/register/login/`, this.login)
+      axios.post(`http://localhost:3000/user/login/`, this.login)
       .then(response => {
         localStorage.setItem('jwtToken', response.data.token)
         this.$router.push({
