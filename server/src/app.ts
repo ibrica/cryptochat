@@ -2,7 +2,7 @@ import * as express from 'express';
 import * as cookieParser from 'cookie-parser';
 import * as logger from 'morgan';
 import { Request, Response, NextFunction } from 'express';
-import { indexRoutes } from './routes';
+// import { indexRoutes } from './routes';
 import { userRoutes } from './routes/users';
 import {MONGODB_URI} from './config/settings';
 import * as mongoose from 'mongoose';
