@@ -1,4 +1,4 @@
-# client
+# vue-demo
 
 ## Project setup
 ```
@@ -23,6 +23,11 @@ npm run test
 ### Lints and fixes files
 ```
 npm run lint
+```
+
+### Run your end-to-end tests
+```
+npm run test:e2e
 ```
 
 ### Run your unit tests

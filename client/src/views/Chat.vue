@@ -41,3 +41,19 @@
     <!-- Adapter webrtc ? -->
 </template>
 
+<script lang="ts">
+import Vue from 'vue';
+
+
+export default class Chat extends Vue {
+  constructor() {
+    super();
+    const chat = () => import('../chat');
+    chat();
+  }
+}
+</script>
+
+
+</script>
+
