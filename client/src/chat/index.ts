@@ -2,11 +2,17 @@ import io from 'socket.io-client';
 import Peer from 'simple-peer';
 import Debug from 'debug';
 
-const debug = Debug('client');
 
-const chat: () => void = () => {
 
-  const socket = io.connect({port: '3000'});
+
+//const  debug = Debug('client');
+const debug = console.log;
+/**
+ * Connect to socket.io
+ */
+export const chat: () => void = () => {
+  const socket = io('localhost:3000');
+
   const useTrickle: boolean = true; // Use trickle default
   const peers: Peer.Instance[] = [];
 
@@ -71,4 +77,3 @@ const chat: () => void = () => {
   });
 };
 
-export default chat;

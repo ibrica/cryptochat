@@ -42,18 +42,16 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+  import Vue from 'vue';
+  import {chat} from '@/chat';
 
 
-export default class Chat extends Vue {
-  constructor() {
-    super();
-    const chat = () => import('../chat');
-    chat();
+  export default class Chat extends Vue {
+    constructor() {
+      super();
+      alert(chat)
+      chat();
+    }
   }
-}
-</script>
-
-
 </script>
 

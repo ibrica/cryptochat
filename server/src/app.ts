@@ -10,7 +10,6 @@ import * as bluebird from 'bluebird';
 import * as path from 'path';
 import * as history from 'connect-history-api-fallback';
 
-
 class App {
   public app: express.Application;
 
@@ -26,17 +25,13 @@ class App {
    * Middlewares config
    */
   private middlewares(): void {
-
     this.app.use(logger('dev'));
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: false }));
     this.app.use(cookieParser());
     // History mode for Vue
     this.app.use(history());
-
-
   }
-
 
   /**
    * Config mongo database
@@ -66,6 +61,7 @@ class App {
       res.status(statusCode).send('Server Error');
     });
   }
+
   /**
    * Api Routes
    */
@@ -74,4 +70,5 @@ class App {
     this.app.use('/user', userRoutes);
   }
 }
+
 export default new App().app;
