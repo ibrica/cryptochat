@@ -2,8 +2,8 @@
  * Start and configure socket.io
  */
 import * as socketIO from 'socket.io';
-import * as os from 'os';
 import { Server } from 'http';
+let _  = require('lodash'); //Problems with lodash errors in TS ???
 
 let io: SocketIO.Server; //
 
@@ -38,6 +38,7 @@ export class SocketIO {
       log('Room ' + room + ' now has ' + numClients + ' client(s)');
 
       if (numClients === 0) {
+        // New room created (When do you cloese it?)
         socket.join(room);
         log('Client ID ' + socket.id + ' created room ' + room);
         // socket.emit('created', room, socket.id);
@@ -47,15 +48,16 @@ export class SocketIO {
 
         socket.join(room);
         // socket.emit('joined', room, socket.id);
-        // io.sockets.in(room).emit('ready');
-        // Emit peer to the chat partner
-        socket.to(room).emit('peer', {
-          initiator: false, // Creator of the room is initiator
-          peerId: socket.id, // peerid = socketid
-        });
+        // Now emit peer event back to connected socket
+        this.emitToAllPeersInRoom(socket);
+
+
       } else { // max two clients
         socket.emit('full', room);
+        return;
       }
+
+      // Works for all socket pairs but for now we have only one
 
       // Message over server
       socket.on('message', (message) => {
@@ -74,6 +76,27 @@ export class SocketIO {
 
     socket.on('bye', () => {
       log('received bye');
+    });
+  }
+
+  private emitToAllPeersInRoom(socket) {
+    let peersToAdvertise = _.chain(io.sockets.connected)
+    .values()
+    .without(socket)
+    .sample(2) // take two nodes
+    .value();
+
+    console.log('advertising peers', _.map(peersToAdvertise, 'id'));
+    peersToAdvertise.forEach((socket2) => {
+      console.log('Advertising peer %s to %s', socket.id, socket2.id);
+      socket2.emit('peer', {
+        peerId: socket.id,
+        initiator: true, // Last one in the room is initiator
+      });
+      socket.emit('peer', {
+        peerId: socket2.id,
+        initiator: false,
+      });
     });
   }
 }
