@@ -3,7 +3,6 @@
  */
 import * as socketIO from 'socket.io';
 import { Server } from 'http';
-let _  = require('lodash'); //Problems with lodash errors in TS ???
 
 let io: SocketIO.Server; //
 
@@ -49,14 +48,13 @@ export class SocketIO {
         socket.join(room);
         // socket.emit('joined', room, socket.id);
         // Now emit peer event back to connected socket
-        this.emitToAllPeersInRoom(socket);
-
+        SocketIO.emitToAllPeersInRoom(socket, room);
 
       } else { // max two clients
         socket.emit('full', room);
         return;
       }
-
+      
       // Works for all socket pairs but for now we have only one
 
       // Message over server
@@ -79,24 +77,28 @@ export class SocketIO {
     });
   }
 
-  private emitToAllPeersInRoom(socket) {
-    let peersToAdvertise = _.chain(io.sockets.connected)
-    .values()
-    .without(socket)
-    .sample(2) // take two nodes
-    .value();
+  // tslint:disable-next-line:member-ordering
+  private static emitToAllPeersInRoom(socket: SocketIO.Socket, room: string) {
+    let peersToAdvertise = io.sockets.connected;
 
-    console.log('advertising peers', _.map(peersToAdvertise, 'id'));
-    peersToAdvertise.forEach((socket2) => {
-      console.log('Advertising peer %s to %s', socket.id, socket2.id);
-      socket2.emit('peer', {
-        peerId: socket.id,
-        initiator: true, // Last one in the room is initiator
-      });
-      socket.emit('peer', {
-        peerId: socket2.id,
-        initiator: false,
-      });
+    io
+      .in(room)
+      .clients((err , clients) => {
+        // clients is array of socket ids in given room, connect all to initiator
+        clients.forEach((roomSocketId: string) => {
+          if (roomSocketId !== socket.id) {
+            let roomSocket: SocketIO.Socket = io.sockets.connected[roomSocketId];
+            roomSocket.to(room).emit('peer', {
+              peerId: socket.id,
+              initiator: true, // First one in the room is initiator
+            });
+            socket.to(room).emit('peer', {
+              peerId: roomSocket.id,
+              initiator: false,
+            });
+          }
+
+        });
     });
   }
 }

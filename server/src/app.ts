@@ -16,7 +16,7 @@ class App {
   constructor() {
     this.app = express();
     this.middlewares();
-    this.database();
+   // this.database(); wait with db
     this.routes();
     this.catchErrors();
   }

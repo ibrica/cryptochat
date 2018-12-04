@@ -1,8 +1,7 @@
 import io from 'socket.io-client';
 import Peer from 'simple-peer';
 import Debug from 'debug';
-
-
+import { format } from 'util';
 
 
 //const  debug = Debug('client');
@@ -32,6 +31,7 @@ export const chat: () => void = () => {
   });
 
   socket.on('full', (r: string) => {
+    alert(format('Can\'t join room  %s, two participants max!', r));
     debug('Can\'t join room  %s, two participants max!', r);
   });
 
