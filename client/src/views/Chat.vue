@@ -44,14 +44,13 @@
 <script lang="ts">
   import Vue from 'vue';
   import {chat} from '@/chat';
-
-
+  chat()
   export default class Chat extends Vue {
-    constructor() {
-      super();
-      alert(chat)
-      chat();
-    }
+    /* lifecycle hook doesn't work?
+    mounted () {
+      alert('sd')
+      chat()
+    } */
   }
 </script>
 

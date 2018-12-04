@@ -23,8 +23,5 @@
   "homepage": "https://github.com/ibrica/cryptochat#readme",
   "dependencies": {},
   "devDependencies": {
-    "@types/connect-mongo": "0.0.39",
-    "@types/cookie-parser": "^1.4.1",
-    "@types/express-session": "^1.15.11"
   }
 }
