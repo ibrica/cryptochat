@@ -25,7 +25,7 @@ export class SocketIO {
       array.push.apply(array, args);
       socket.emit('log', array);
     }
-
+     
     /**
      * Create or join room
      */
@@ -86,12 +86,13 @@ export class SocketIO {
       .clients((err , clients) => {
         // clients is array of socket ids in given room, connect all to initiator
         clients.forEach((roomSocketId: string) => {
+          let roomSocket: SocketIO.Socket = io.sockets.connected[roomSocketId];
           if (roomSocketId !== socket.id) {
-            let roomSocket: SocketIO.Socket = io.sockets.connected[roomSocketId];
             roomSocket.to(room).emit('peer', {
               peerId: socket.id,
               initiator: true, // First one in the room is initiator
             });
+          } else {
             socket.to(room).emit('peer', {
               peerId: roomSocket.id,
               initiator: false,

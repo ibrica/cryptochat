@@ -1,17 +1,15 @@
 import io from 'socket.io-client';
 import Peer from 'simple-peer';
 import Debug from 'debug';
-import { format } from 'util';
 
 
 //const  debug = Debug('client');
 const debug = console.log;
-// Local video stream
-let localStream: any;
+
 /**
  * Connect to socket.io
  */
-export const chat: () => void = () => {
+export async function chat() {
   const socket = io('localhost:3000');
 
   const useTrickle: boolean = true; // Use trickle default
@@ -23,18 +21,21 @@ export const chat: () => void = () => {
   const room = slash2Index < 0 ? path : path.slice(0, slash2Index);
 
   // Try to show local video
-  const localVideo: HTMLVideoElement | null  = document.querySelector('#localVideo');
-  navigator.mediaDevices.getUserMedia({
-    audio: false,
-    video: true,
-  })
-  .then(showLocalVideo)
-  .catch((e) => {
-    debug('getUserMedia() error: ' + e.name);
-  });
-
-
-
+  let localStream: MediaStream;
+  try {
+      localStream = await navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: true,
+    });
+    debug('Playing local stream.');
+    const localVideo: HTMLVideoElement | null  = document.querySelector('#localVideo');
+    if (localVideo && localStream) {
+      localVideo.srcObject = localStream;
+    }
+  } catch (error){
+    debug('getUserMedia() error: ' + error.name);
+  }
+  
   if (room !== '') {
     // Create or join room
     socket.emit('join', room);
@@ -51,7 +52,7 @@ export const chat: () => void = () => {
 
   socket.on('peer', (peerData: any) => {
     const peerId: number = peerData.peerId;
-    const peer = new Peer({ initiator: peerData.initiator, trickle: useTrickle, stream: localStream });
+    const peer = new Peer({ initiator: peerData.initiator, trickle: useTrickle , stream:localStream});
 
     debug('Peer available for connection discovered from signalling server, Peer ID: %s', peerId);
 
@@ -68,7 +69,7 @@ export const chat: () => void = () => {
     });
 
     peer.on('signal', (data) => {
-      debug('Advertising signalling data', data, 'to Peer ID:', peerId);
+      debug('Advertising  signalling data', data, 'to Peer ID:', peerId);
       socket.emit('signal', {
         signal: data,
         peerId,
@@ -88,9 +89,11 @@ export const chat: () => void = () => {
     });
 
     peer.on('stream', (stream) => {
+      console.log('stream');
       // got remote video stream, now let's show it in a video tag
       const remoteVideo: HTMLVideoElement | null  = document.querySelector('#remoteVideo');
       if (remoteVideo) {
+        debug('Playing remote stream');
         remoteVideo.src = window.URL.createObjectURL(stream);
         remoteVideo.play();
       }
@@ -99,14 +102,5 @@ export const chat: () => void = () => {
     peers[peerId] = peer;
   });
 };
-
-function showLocalVideo(stream): void {
-    debug('Adding local stream.');
-    localStream = stream;
-    const localVideo: HTMLVideoElement | null  = document.querySelector('#localVideo');
-    if (localVideo) {
-      localVideo.srcObject = stream;
-    }
-}
 
 
