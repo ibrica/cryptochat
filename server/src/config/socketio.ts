@@ -5,6 +5,7 @@ import * as socketIO from 'socket.io';
 import { Server } from 'http';
 
 let io: SocketIO.Server; //
+const DEFAULT_PEER_COUNT:number = 5;
 
 export class SocketIO {
 
@@ -21,6 +22,7 @@ export class SocketIO {
   private configSocket(socket) {
     // function to log server messages on the client
     function log(...args: any[]) {
+      console.log(args);
       let array: any[] = ['Message from server:'];
       array.push.apply(array, args);
       socket.emit('log', array);
@@ -41,10 +43,9 @@ export class SocketIO {
         socket.join(room);
         log('Client ID ' + socket.id + ' created room ' + room);
         // socket.emit('created', room, socket.id);
-      } else if (numClients === 1) {
+      } else if (numClients < DEFAULT_PEER_COUNT) {
         log('Client ID ' + socket.id + ' joined room ' + room);
         // io.sockets.in(room).emit('join', room);
-
         socket.join(room);
         // socket.emit('joined', room, socket.id);
         // Now emit peer event back to connected socket
@@ -61,44 +62,47 @@ export class SocketIO {
       socket.on('message', (message) => {
         log('Client said: ', message);
         // room broadcast
-        socket.to(room).emit('message', message);
+        socket
+          .to(room)
+          .emit('message', message);
       });
 
       socket.on('signal', (data) => {
+        log('Signal:', data);
         socket.to(room).emit('signal', {
           signal: data.signal,
           peerId: socket.id,
         });
       });
+
     });
 
     socket.on('bye', () => {
       log('received bye');
     });
+
+
   }
 
   // tslint:disable-next-line:member-ordering
   private static emitToAllPeersInRoom(socket: SocketIO.Socket, room: string) {
-    let peersToAdvertise = io.sockets.connected;
-
     io
       .in(room)
-      .clients((err , clients) => {
-        // clients is array of socket ids in given room, connect all to initiator
+      .clients((err , clients) => { // clients is array of socket ids in given room, connect all to new peer
         clients.forEach((roomSocketId: string) => {
           let roomSocket: SocketIO.Socket = io.sockets.connected[roomSocketId];
+          // pair peer to all other nodes
           if (roomSocketId !== socket.id) {
-            roomSocket.to(room).emit('peer', {
+            roomSocket.emit('peer', {
               peerId: socket.id,
-              initiator: true, // First one in the room is initiator
+              initiator: true, // new peer is initiator
             });
-          } else {
-            socket.to(room).emit('peer', {
-              peerId: roomSocket.id,
-              initiator: false,
+            // now send a peer event to new node
+            socket.emit('peer', {
+              peerId: roomSocketId,
+              initiator: false, 
             });
-          }
-
+          } 
         });
     });
   }

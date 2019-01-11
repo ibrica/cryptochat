@@ -82,6 +82,7 @@ export async function chat() {
 
     peer.on('connect', () => {
       debug('Peer connection established');
+      peer.send("hey peer");
     });
 
     peer.on('data', (data) => {
@@ -89,12 +90,18 @@ export async function chat() {
     });
 
     peer.on('stream', (stream) => {
-      console.log('stream');
+      debug('video stream received');
       // got remote video stream, now let's show it in a video tag
-      const remoteVideo: HTMLVideoElement | null  = document.querySelector('#remoteVideo');
+      const remoteVideo:HTMLVideoElement | null  = document.querySelector('#remoteVideo');
       if (remoteVideo) {
         debug('Playing remote stream');
-        remoteVideo.src = window.URL.createObjectURL(stream);
+        try {
+          window.URL.createObjectURL(stream);
+        }catch(ex){
+          // not supported now window.URL.createObjectURL(stream), newer browser
+          remoteVideo.srcObject = stream;
+        }
+        
         remoteVideo.play();
       }
     });
