@@ -2,7 +2,6 @@ import io from 'socket.io-client';
 import Peer from 'simple-peer';
 import Debug from 'debug';
 
-
 //const  debug = Debug('client');
 const debug = console.log;
 
