@@ -19,7 +19,7 @@
       </div>
     </footer>
 
-    <div id="icons" :class="[iconsHidden?'hidden':'']">
+    <div id="icons" :class="[iconsHidden?'hidden':'active']">
       <svg
         id="mute-audio"
         xmlns="http://www.w3.org/2000/svg"
@@ -122,14 +122,15 @@
 </style>
 
 <script lang="ts">
-  import io from 'socket.io-client';
-  import Peer from 'simple-peer';
   import Vue from 'vue';
   import { Component} from 'vue-property-decorator'
-  import Debug from 'debug';
-
+  import io from 'socket.io-client';
+  import Peer from 'simple-peer';
+  //import Debug from 'debug';
   //const  debug = Debug('client');
+
   const debug = console.log;
+
 
   @Component
   export default class Chat extends Vue {
@@ -155,9 +156,25 @@
       this.iconsHidden = false;
     }
 
+    hideIcons(flag: boolean) {
+      this.iconsHidden = flag;
+    }
+
+    activate(element: HTMLElement){
+      element.classList.add('active');
+    }
+
+    deactivate(element: HTMLElement){
+      element.classList.remove('active');
+    }
+
+    toggle(element: HTMLElement){
+      element.classList.contains('on') ? element.classList.remove('on') : element.classList.add('on');
+    }
+
     async chat() {
         const socket = io('localhost:3000');
-
+        
         const useTrickle: boolean = true; // Use trickle default
         const peers: Peer.Instance[] = [];
 
@@ -174,10 +191,10 @@
             video: true,
           });
           debug('Playing local stream.');
-          const localVideo: HTMLVideoElement | null  = document.querySelector('#localVideo');
+          const localVideo: HTMLVideoElement | null  = document.querySelector('#local-video');
           if (localVideo && localStream) {
             localVideo.srcObject = localStream;
-            this.iconsHidden = false;
+            this.hideIcons(false);
           }
         } catch (error){
           debug('getUserMedia() error: ' + error.name);
@@ -247,8 +264,7 @@
               }catch(ex){
                 // not supported now window.URL.createObjectURL(stream), newer browser
                 remoteVideo.srcObject = stream;
-              }
-              
+              }              
               remoteVideo.play();
             }
           });
@@ -256,6 +272,7 @@
           peers[peerId] = peer;
         });
     }
+    
 };
   
 </script>
