@@ -136,34 +136,49 @@
   export default class Chat extends Vue {
     iconsHidden: boolean = true;
     hangupHidden: boolean = true;
+    localVideo: HTMLVideoElement  = document.querySelector('#local-video');
+    miniVideo: HTMLVideoElement  = document.querySelector('#mini-video');
+    remoteVideo: HTMLVideoElement  = document.querySelector('#remote-video');
+    videosDiv: HTMLDivElement = document.querySelector('#videos');
+    localStream: MediaStream;
+    remoteStream: MediaStream;
+
     constructor(){
       super();
       this.chat();
     }
 
     /**
-     * Show video stream
-     * mode - string (L - Local, R - Remote)
+     * Show local video stream
      * stream - MediaStream to show
      */
-    showVideo(mode: string, stream: MediaStream){ 
-      const localVideo: HTMLVideoElement | null  = document.querySelector('#local-video');
-      if(mode==='L'){
-          if (localVideo && stream) {
-            localVideo.srcObject = stream;
-            this.hideIcons(false);
+    showLocalVideo(){ 
+          if (this.localStream) {
+              this.localVideo.srcObject = this.localStream;
+              this.hideIcons(false);
+              this.hangupHidden = true;
+              this.deactivate(this.miniVideo);
+              this.deactivate(this.remoteVideo);
           }
-      } else {
-            // got remote video stream, now let's show it in a video tag
-            const remoteVideo:HTMLVideoElement | null  = document.querySelector('#remote-video');
-            // not supported now window.URL.createObjectURL(stream), newer browser
-            remoteVideo.srcObject = stream;
-            /*remoteVideo.play()
-                      .catch(_=>{}); // Chrome autoplay policy
-            */
-           const miniVideo:HTMLVideoElement | null  = document.querySelector('#mini-video');
-           miniVideo.srcObject = localVideo.srcObject;  
-           this.hangupHidden = false;
+          
+    }
+
+    /**
+     * Show local video stream
+     * stream - MediaStream to show
+     */
+    showRemoteVideo(){ 
+      if (this.remoteStream) {
+        this.miniVideo.srcObject = this.localStream;
+        this.localVideo.srcObject = null;
+        // Transition opacity from 0 to 1 for the remote and mini videos.
+        this.activate(this.remoteVideo);
+        this.activate(this.miniVideo);
+        // Transition opacity from 1 to 0 for the local video.
+        this.deactivate(this.localVideo);
+        // Rotate the div containing the videos 180 deg with a CSS transform.
+        this.activate(this.videosDiv);
+        this.hangupHidden = false;
       }
     }
 
@@ -172,7 +187,7 @@
     }
 
     toggleVideoMute (): void {
-
+      
     }
 
     toggleFullscreen (): void {
@@ -180,7 +195,8 @@
     }
 
     hangup (): void {
-      this.hangupHidden = true;
+      this.remoteStream = null;
+      this.showLocalVideo();
     }
 
     hideIcons(flag: boolean) {
@@ -213,12 +229,12 @@
         // Try to show local video
         let localStream: MediaStream;
         try {
-            localStream = await navigator.mediaDevices.getUserMedia({
+            this.localStream = await navigator.mediaDevices.getUserMedia({
             audio: false,
             video: true,
           });
           debug('Playing local stream.');
-          this.showVideo('L', localStream);
+          this.showLocalVideo();
 
         } catch (error){
           debug('getUserMedia() error: ' + error.name);
@@ -279,7 +295,8 @@
 
           peer.on('stream', (stream) => {
             debug('video stream received');
-            this.showVideo('R', stream);
+            this.remoteStream = stream;
+            this.showRemoteVideo();
           });
           // Remember peers in the list though only one on one is allowed
           peers[peerId] = peer;
