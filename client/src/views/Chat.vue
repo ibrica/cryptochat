@@ -103,7 +103,7 @@
         width="48"
         height="48"
         viewBox="-10 -10 68 68"
-        :click="toggleFullscreen"
+        :click="hangup"
       >
         <circle cx="24" cy="24" r="34">
           <title>Hangup</title>
@@ -136,31 +136,52 @@
   export default class Chat extends Vue {
     iconsHidden: boolean = true;
     hangupHidden: boolean = true;
-    localVideo: HTMLVideoElement  = document.querySelector('#local-video');
-    miniVideo: HTMLVideoElement  = document.querySelector('#mini-video');
-    remoteVideo: HTMLVideoElement  = document.querySelector('#remote-video');
-    videosDiv: HTMLDivElement = document.querySelector('#videos');
-    localStream: MediaStream;
-    remoteStream: MediaStream;
+    isFullscreen: boolean = false;
+    localVideo: HTMLVideoElement;
+    miniVideo: HTMLVideoElement ;
+    remoteVideo: HTMLVideoElement;
+    videosDiv: HTMLDivElement;
+    localStream: MediaStream | null;
+    remoteStream: MediaStream | null;
+    peers: Peer.Instance[] = [];
 
     constructor(){
       super();
       this.chat();
+      this.showLocalVideo();
     }
 
     /**
      * Show local video stream
      * stream - MediaStream to show
      */
-    showLocalVideo(){ 
-          if (this.localStream) {
-              this.localVideo.srcObject = this.localStream;
-              this.hideIcons(false);
-              this.hangupHidden = true;
-              this.deactivate(this.miniVideo);
-              this.deactivate(this.remoteVideo);
+    async showLocalVideo(){ 
+          // get video and audio stream
+          if (!this.localStream) {
+            try {
+                this.localStream = await navigator.mediaDevices.getUserMedia({
+                audio: true,
+                video: true,
+              });
+              debug('Playing local stream.');
+            } catch (error){
+              debug('getUserMedia() error: ' + error.name);
+            }
           }
-          
+
+          if (!this.localVideo){
+            this.localVideo = document.querySelector('#local-video');
+            this.miniVideo  = document.querySelector('#mini-video');
+            this.remoteVideo  = document.querySelector('#remote-video');
+            this.videosDiv = document.querySelector('#videos');
+          }
+
+          this.localVideo.srcObject = this.localStream;
+          this.hideIcons(false);
+          this.hangupHidden = true;
+          this.deactivate(this.miniVideo);
+          this.deactivate(this.remoteVideo);
+      
     }
 
     /**
@@ -169,6 +190,7 @@
      */
     showRemoteVideo(){ 
       if (this.remoteStream) {
+        this.remoteVideo.srcObject = this.remoteStream;
         this.miniVideo.srcObject = this.localStream;
         this.localVideo.srcObject = null;
         // Transition opacity from 0 to 1 for the remote and mini videos.
@@ -179,25 +201,56 @@
         // Rotate the div containing the videos 180 deg with a CSS transform.
         this.activate(this.videosDiv);
         this.hangupHidden = false;
+        debug('Displaying remote video...');
+      } else {
+        debug('Error in Displaying remote video, no stream available');
       }
     }
 
     toggleAudioMute (): void {
-
+      // Do nothing for now
     }
 
     toggleVideoMute (): void {
-      
+      // Do nothing for now
     }
 
     toggleFullscreen (): void {
-      
+      var elem = document.documentElement;
+      this.isFullscreen = !this.isFullscreen;
+      if (this.isFullscreen){
+        // View in fullscreen
+        if (elem.requestFullscreen) {
+          elem.requestFullscreen();
+        } else if (elem.mozRequestFullScreen) { /* Firefox */
+          elem.mozRequestFullScreen();
+        } else if (elem.webkitRequestFullscreen) { /* Chrome, Safari and Opera */
+          elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) { /* IE/Edge */
+          elem.msRequestFullscreen();
+        }
+      } else {
+        // Close fullscreen
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.mozCancelFullScreen) { /* Firefox */
+          document.mozCancelFullScreen();
+        } else if (document.webkitExitFullscreen) { /* Chrome, Safari and Opera */
+          document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) { /* IE/Edge */
+          document.msExitFullscreen();
+        }
+      }
     }
 
     hangup (): void {
       this.remoteStream = null;
+      this.peers.forEach(peer => {
+        peer.destroy();
+      });
       this.showLocalVideo();
     }
+
 
     hideIcons(flag: boolean) {
       this.iconsHidden = flag;
@@ -215,31 +268,16 @@
       element.classList.contains('on') ? element.classList.remove('on') : element.classList.add('on');
     }
 
-    async chat() {
+    chat() {
         const socket = io('localhost:3000');
         
         const useTrickle: boolean = true; // Use trickle default
-        const peers: Peer.Instance[] = [];
 
         // Take a name of room from URL, trim leading slash and ignore path behind secod slash
         const path: string = window.location.pathname.slice(1);
         const slash2Index: number = path.indexOf('/');
         const room = slash2Index < 0 ? path : path.slice(0, slash2Index);
-
-        // Try to show local video
-        let localStream: MediaStream;
-        try {
-            this.localStream = await navigator.mediaDevices.getUserMedia({
-            audio: false,
-            video: true,
-          });
-          debug('Playing local stream.');
-          this.showLocalVideo();
-
-        } catch (error){
-          debug('getUserMedia() error: ' + error.name);
-        }
-        
+ 
         if (room !== '') {
           // Create or join room
           socket.emit('join', room);
@@ -256,7 +294,7 @@
 
         socket.on('peer', (peerData: any) => {
           const peerId: number = peerData.peerId;
-          const peer = new Peer({ initiator: peerData.initiator, trickle: useTrickle , stream:localStream});
+          const peer = new Peer({ initiator: peerData.initiator, trickle: useTrickle , stream:this.localStream});
 
           debug('Peer available for connection discovered from signalling server, Peer ID: %s', peerId);
 
@@ -299,7 +337,7 @@
             this.showRemoteVideo();
           });
           // Remember peers in the list though only one on one is allowed
-          peers[peerId] = peer;
+          this.peers[peerId] = peer;
         });
     }
 };
