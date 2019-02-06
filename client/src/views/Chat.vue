@@ -1,5 +1,5 @@
 <template>
-  <div id="template" >
+  <div id="template">
     <div id="videos">
       <video id="mini-video" autoplay playsinline muted></video>
       <video id="remote-video" autoplay playsinline></video>
@@ -26,7 +26,7 @@
         width="48"
         height="48"
         viewBox="-10 -10 68 68"
-        :click="toggleAudioMute"
+        @click="toggleAudioMute"
       >
         <title>title</title>
         <circle cx="24" cy="24" r="34">
@@ -52,7 +52,7 @@
         width="48"
         height="48"
         viewBox="-10 -10 68 68"
-        :click="toggleVideoMute"
+        @click="toggleVideoMute"
       >
         <circle cx="24" cy="24" r="34">
           <title>Mute video</title>
@@ -77,7 +77,7 @@
         width="48"
         height="48"
         viewBox="-10 -10 68 68"
-        :click="toggleFullscreen"
+        @click="toggleFullscreen"
       >
         <circle cx="24" cy="24" r="34">
           <title>Enter fullscreen</title>
@@ -98,12 +98,11 @@
       
       <svg
         id="hangup"
-        :class="[hangupHidden?'hidden':'']"
         xmlns="http://www.w3.org/2000/svg"
         width="48"
         height="48"
         viewBox="-10 -10 68 68"
-        :click="hangup"
+        @click="hangup"
       >
         <circle cx="24" cy="24" r="34">
           <title>Hangup</title>
@@ -135,21 +134,25 @@
   @Component
   export default class Chat extends Vue {
     iconsHidden: boolean = true;
-    hangupHidden: boolean = true;
     isFullscreen: boolean = false;
-    localVideo: HTMLVideoElement;
+    localVideo: HTMLVideoElement ;
     miniVideo: HTMLVideoElement ;
     remoteVideo: HTMLVideoElement;
     videosDiv: HTMLDivElement;
+    hangupIcon: HTMLElement;
     localStream: MediaStream | null;
     remoteStream: MediaStream | null;
     peers: Peer.Instance[] = [];
 
-    constructor(){
-      super();
+   mounted(){
+      this.localVideo = document.querySelector('#local-video'); 
+      this.miniVideo  = document.querySelector('#mini-video');
+      this.remoteVideo = document.querySelector('#remote-video');
+      this.videosDiv = document.querySelector('#videos');
+      this.hangupIcon = document.querySelector('#hangup');
       this.chat();
       this.showLocalVideo();
-    }
+   }
 
     /**
      * Show local video stream
@@ -169,22 +172,16 @@
             }
           }
 
-          if (!this.localVideo){
-            this.localVideo = document.querySelector('#local-video');
-            this.miniVideo  = document.querySelector('#mini-video');
-            this.remoteVideo  = document.querySelector('#remote-video');
-            this.videosDiv = document.querySelector('#videos');
-          }
-
           this.localVideo.srcObject = this.localStream;
           this.hideIcons(false);
-          this.hangupHidden = true;
+          this.hide(this.hangupIcon, true);
+          this.activate(this.localVideo);
           this.deactivate(this.miniVideo);
           this.deactivate(this.remoteVideo);
-      
+          this.deactivate(this.videosDiv);
     }
 
-    /**
+    /** 
      * Show local video stream
      * stream - MediaStream to show
      */
@@ -200,7 +197,7 @@
         this.deactivate(this.localVideo);
         // Rotate the div containing the videos 180 deg with a CSS transform.
         this.activate(this.videosDiv);
-        this.hangupHidden = false;
+        this.hide(this.hangupIcon, false);
         debug('Displaying remote video...');
       } else {
         debug('Error in Displaying remote video, no stream available');
@@ -209,38 +206,41 @@
 
     toggleAudioMute (): void {
       // Do nothing for now
+      this.showLocalVideo();
     }
 
     toggleVideoMute (): void {
       // Do nothing for now
+      this.showRemoteVideo();
     }
 
     toggleFullscreen (): void {
       var elem = document.documentElement;
       this.isFullscreen = !this.isFullscreen;
+    
       if (this.isFullscreen){
         // View in fullscreen
         if (elem.requestFullscreen) {
           elem.requestFullscreen();
-        } else if (elem.mozRequestFullScreen) { /* Firefox */
+        } else if (elem.mozRequestFullScreen) { // Firefox 
           elem.mozRequestFullScreen();
-        } else if (elem.webkitRequestFullscreen) { /* Chrome, Safari and Opera */
+        } else if (elem.webkitRequestFullscreen) { // Chrome, Safari and Opera
           elem.webkitRequestFullscreen();
-        } else if (elem.msRequestFullscreen) { /* IE/Edge */
+        } else if (elem.msRequestFullscreen) { // IE/Edge
           elem.msRequestFullscreen();
         }
       } else {
         // Close fullscreen
         if (document.exitFullscreen) {
           document.exitFullscreen();
-        } else if (document.mozCancelFullScreen) { /* Firefox */
+        } else if (document.mozCancelFullScreen) { // Firefox 
           document.mozCancelFullScreen();
-        } else if (document.webkitExitFullscreen) { /* Chrome, Safari and Opera */
+        } else if (document.webkitExitFullscreen) { // Chrome, Safari and Opera
           document.webkitExitFullscreen();
-        } else if (document.msExitFullscreen) { /* IE/Edge */
+        } else if (document.msExitFullscreen) { // IE/Edge
           document.msExitFullscreen();
         }
-      }
+      } 
     }
 
     hangup (): void {
@@ -258,6 +258,14 @@
 
     activate(element: HTMLElement){
       element.classList.add('active');
+    }
+
+    hide(element: HTMLElement, flag: boolean){
+      if(flag){ // Vue not refreshing, direct attr. class change
+        element.classList.add('hidden');
+      } else {
+        element.classList.remove('hidden');
+      }
     }
 
     deactivate(element: HTMLElement){
