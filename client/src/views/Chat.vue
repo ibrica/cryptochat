@@ -7,8 +7,13 @@
     </div>
     <footer>
       <div id="sharing-div">
-        <div id="room-link">Waiting for other peers to join this room:
-          <a id="room" :href="$route.params.room" target="_blank">{{ $route.params.room }}</a>
+        <div id="room-link">
+          Waiting for other peers to join this room:
+          <a
+            id="room"
+            :href="$route.params.room"
+            target="_blank"
+          >{{ $route.params.room }}</a>
         </div>
       </div>
       <div id="status-div"></div>
@@ -105,7 +110,7 @@
         @click="hangup"
       >
         <circle cx="24" cy="24" r="34">
-          <title>Hangup</title>
+          <title>Call / Hangup</title>
         </circle>
         <path
           transform="scale(0.7), translate(11,10)"
@@ -121,233 +126,254 @@
 </style>
 
 <script lang="ts">
-  import Vue from 'vue';
-  import { Component} from 'vue-property-decorator'
-  import io from 'socket.io-client';
-  import Peer from 'simple-peer';
-  //import Debug from 'debug';
-  //const  debug = Debug('client');
+import Vue from "vue";
+import { Component } from "vue-property-decorator";
+import io from "socket.io-client";
+import Peer from "simple-peer";
+//import Debug from 'debug';
+//const  debug = Debug('client');
 
-  const debug = console.log;
+const debug = console.log;
 
+@Component
+export default class Chat extends Vue {
+  iconsHidden: boolean = true;
+  isFullscreen: boolean = false;
+  localVideo: HTMLVideoElement;
+  miniVideo: HTMLVideoElement;
+  remoteVideo: HTMLVideoElement;
+  videosDiv: HTMLDivElement;
+  hangupIcon: HTMLElement;
+  localStream: MediaStream | null;
+  remoteStream: MediaStream | null;
+  peers: Peer.Instance[] = [];
+  socket: SocketIOClient.Socket;
 
-  @Component
-  export default class Chat extends Vue {
-    iconsHidden: boolean = true;
-    isFullscreen: boolean = false;
-    localVideo: HTMLVideoElement ;
-    miniVideo: HTMLVideoElement ;
-    remoteVideo: HTMLVideoElement;
-    videosDiv: HTMLDivElement;
-    hangupIcon: HTMLElement;
-    localStream: MediaStream | null;
-    remoteStream: MediaStream | null;
-    peers: Peer.Instance[] = [];
+  async mounted() {
+    this.localVideo = document.querySelector("#local-video");
+    this.miniVideo = document.querySelector("#mini-video");
+    this.remoteVideo = document.querySelector("#remote-video");
+    this.videosDiv = document.querySelector("#videos");
+    this.hangupIcon = document.querySelector("#hangup");
+    await this.showLocalVideo();
+  }
 
-   mounted(){
-      this.localVideo = document.querySelector('#local-video'); 
-      this.miniVideo  = document.querySelector('#mini-video');
-      this.remoteVideo = document.querySelector('#remote-video');
-      this.videosDiv = document.querySelector('#videos');
-      this.hangupIcon = document.querySelector('#hangup');
-      this.chat();
-      this.showLocalVideo();
-   }
-
-    /**
-     * Show local video stream
-     * stream - MediaStream to show
-     */
-    async showLocalVideo(){ 
-          // get video and audio stream
-          if (!this.localStream) {
-            try {
-                this.localStream = await navigator.mediaDevices.getUserMedia({
-                audio: true,
-                video: true,
-              });
-              debug('Playing local stream.');
-            } catch (error){
-              debug('getUserMedia() error: ' + error.name);
-            }
-          }
-
-          this.localVideo.srcObject = this.localStream;
-          this.hideIcons(false);
-          this.hide(this.hangupIcon, true);
-          this.activate(this.localVideo);
-          this.deactivate(this.miniVideo);
-          this.deactivate(this.remoteVideo);
-          this.deactivate(this.videosDiv);
-    }
-
-    /** 
-     * Show local video stream
-     * stream - MediaStream to show
-     */
-    showRemoteVideo(){ 
-      if (this.remoteStream) {
-        this.remoteVideo.srcObject = this.remoteStream;
-        this.miniVideo.srcObject = this.localStream;
-        this.localVideo.srcObject = null;
-        // Transition opacity from 0 to 1 for the remote and mini videos.
-        this.activate(this.remoteVideo);
-        this.activate(this.miniVideo);
-        // Transition opacity from 1 to 0 for the local video.
-        this.deactivate(this.localVideo);
-        // Rotate the div containing the videos 180 deg with a CSS transform.
-        this.activate(this.videosDiv);
-        this.hide(this.hangupIcon, false);
-        debug('Displaying remote video...');
-      } else {
-        debug('Error in Displaying remote video, no stream available');
+  /**
+   * Show local video stream
+   * stream - MediaStream to show
+   */
+  async showLocalVideo() {
+    // get video and audio stream
+    if (!this.localStream) {
+      try {
+        this.localStream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+          video: true
+        });
+        debug("Playing local stream.");
+      } catch (error) {
+        debug("getUserMedia() error: " + error.name);
       }
     }
 
-    toggleAudioMute (): void {
-      // Do nothing for now
-      this.showLocalVideo();
-    }
+    this.localVideo.srcObject = this.localStream;
+    this.hideIcons(false);
+    this.activate(this.localVideo);
+    this.deactivate(this.miniVideo);
+    this.deactivate(this.remoteVideo);
+    this.deactivate(this.videosDiv);
+  }
 
-    toggleVideoMute (): void {
-      // Do nothing for now
-      this.showRemoteVideo();
+  /**
+   * Show local video stream
+   * stream - MediaStream to show
+   */
+  showRemoteVideo() {
+    if (this.remoteStream) {
+      this.remoteVideo.srcObject = this.remoteStream;
+      this.miniVideo.srcObject = this.localStream;
+      this.localVideo.srcObject = null;
+      // Transition opacity from 0 to 1 for the remote and mini videos.
+      this.activate(this.remoteVideo);
+      this.activate(this.miniVideo);
+      // Transition opacity from 1 to 0 for the local video.
+      this.deactivate(this.localVideo);
+      // Rotate the div containing the videos 180 deg with a CSS transform.
+      this.activate(this.videosDiv);
+      debug("Displaying remote video...");
+    } else {
+      debug("Error in Displaying remote video, no stream available");
     }
+  }
 
-    toggleFullscreen (): void {
-      var elem = document.documentElement;
-      this.isFullscreen = !this.isFullscreen;
-    
-      if (this.isFullscreen){
-        // View in fullscreen
-        if (elem.requestFullscreen) {
-          elem.requestFullscreen();
-        } else if (elem.mozRequestFullScreen) { // Firefox 
-          elem.mozRequestFullScreen();
-        } else if (elem.webkitRequestFullscreen) { // Chrome, Safari and Opera
-          elem.webkitRequestFullscreen();
-        } else if (elem.msRequestFullscreen) { // IE/Edge
-          elem.msRequestFullscreen();
-        }
-      } else {
-        // Close fullscreen
-        if (document.exitFullscreen) {
-          document.exitFullscreen();
-        } else if (document.mozCancelFullScreen) { // Firefox 
-          document.mozCancelFullScreen();
-        } else if (document.webkitExitFullscreen) { // Chrome, Safari and Opera
-          document.webkitExitFullscreen();
-        } else if (document.msExitFullscreen) { // IE/Edge
-          document.msExitFullscreen();
-        }
-      } 
+  toggleAudioMute(): void {
+    // Do nothing for now
+    this.showLocalVideo();
+  }
+
+  toggleVideoMute(): void {
+    // Do nothing for now
+    this.showRemoteVideo();
+  }
+
+  toggleFullscreen(): void {
+    var elem = document.documentElement;
+    this.isFullscreen = !this.isFullscreen;
+
+    if (this.isFullscreen) {
+      // View in fullscreen
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+      } else if (elem.mozRequestFullScreen) {
+        // Firefox
+        elem.mozRequestFullScreen();
+      } else if (elem.webkitRequestFullscreen) {
+        // Chrome, Safari and Opera
+        elem.webkitRequestFullscreen();
+      } else if (elem.msRequestFullscreen) {
+        // IE/Edge
+        elem.msRequestFullscreen();
+      }
+    } else {
+      // Close fullscreen
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (document.mozCancelFullScreen) {
+        // Firefox
+        document.mozCancelFullScreen();
+      } else if (document.webkitExitFullscreen) {
+        // Chrome, Safari and Opera
+        document.webkitExitFullscreen();
+      } else if (document.msExitFullscreen) {
+        // IE/Edge
+        document.msExitFullscreen();
+      }
     }
+  }
 
-    hangup (): void {
+  hangup(): void {
+    if (this.socket && this.socket.connected) {
+      // Hangup, check out from room
       this.remoteStream = null;
-      this.peers.forEach(peer => {
-        peer.destroy();
-      });
+      this.socket.close();
       this.showLocalVideo();
+      this.deactivate(this.hangupIcon);
+    } else {
+      // connect to room, send a stream to peers
+      this.chat();
+      this.activate(this.hangupIcon);
+    }
+  }
+
+  hideIcons(flag: boolean) {
+    this.iconsHidden = flag;
+  }
+
+  activate(element: HTMLElement) {
+    element.classList.add("active");
+  }
+
+  deactivate(element: HTMLElement) {
+    element.classList.remove("active");
+  }
+
+  toggle(element: HTMLElement) {
+    element.classList.contains("on")
+      ? element.classList.remove("on")
+      : element.classList.add("on");
+  }
+
+  async chat() {
+    const self = this;
+    const socket = io("localhost:3000");
+    this.socket = socket;
+
+    const useTrickle: boolean = true; // Use trickle default
+
+    // Take a name of room from URL, trim leading slash and ignore path behind secod slash
+    const path: string = window.location.pathname.slice(1);
+    const slash2Index: number = path.indexOf("/");
+    const room = slash2Index < 0 ? path : path.slice(0, slash2Index);
+
+    if (room !== "") {
+      // Create or join room
+      socket.emit("join", room);
+      debug("Attempted to create or join room", room);
     }
 
+    socket.on("connect", () => {
+      debug("Connected to signalling server, Peer ID: %s", socket.id);
+    });
+    /**
+     * Peer disconnecting
+     */
+    socket.on("bye", socketId => {
+      self.peers[socketId].destroy();
+      // removed?
+      self.showLocalVideo();    
+    });
 
-    hideIcons(flag: boolean) {
-      this.iconsHidden = flag;
-    }
+    socket.on("full", (r: string) => {
+      debug("Can't join room  %s, two participants max!", r);
+    });
 
-    activate(element: HTMLElement){
-      element.classList.add('active');
-    }
+    socket.on("peer", (peerData: any) => {
+      const peerId: number = peerData.peerId;
+      const peer = new Peer({
+        initiator: peerData.initiator,
+        trickle: useTrickle,
+        stream: self.localStream
+      });
 
-    hide(element: HTMLElement, flag: boolean){
-      if(flag){ // Vue not refreshing, direct attr. class change
-        element.classList.add('hidden');
-      } else {
-        element.classList.remove('hidden');
-      }
-    }
+      debug(
+        "Peer available for connection discovered from signalling server, Peer ID: %s",
+        peerId
+      );
 
-    deactivate(element: HTMLElement){
-      element.classList.remove('active');
-    }
-
-    toggle(element: HTMLElement){
-      element.classList.contains('on') ? element.classList.remove('on') : element.classList.add('on');
-    }
-
-    chat() {
-        const socket = io('localhost:3000');
-        
-        const useTrickle: boolean = true; // Use trickle default
-
-        // Take a name of room from URL, trim leading slash and ignore path behind secod slash
-        const path: string = window.location.pathname.slice(1);
-        const slash2Index: number = path.indexOf('/');
-        const room = slash2Index < 0 ? path : path.slice(0, slash2Index);
- 
-        if (room !== '') {
-          // Create or join room
-          socket.emit('join', room);
-          debug('Attempted to create or join room', room);
+      // Catching signal event from socket.io server
+      socket.on("signal", data => {
+        if (data.peerId === peerId) {
+          // If not true this is not my room partner
+          debug("Received signalling data", data, "from Peer ID:", peerId);
+          peer.signal(data.signal);
         }
+      });
 
-        socket.on('connect', () => {
-          debug('Connected to signalling server, Peer ID: %s', socket.id);
+      socket.on("log", array => {
+        debug(array);
+      });
+
+      peer.on("signal", data => {
+        debug("Advertising  signalling data", data, "to Peer ID:", peerId);
+        socket.emit("signal", {
+          signal: data,
+          peerId
         });
+      });
 
-        socket.on('full', (r: string) => {
-          debug('Can\'t join room  %s, two participants max!', r);
-        });
+      peer.on("error", e => {
+        debug("Error sending connection to peer %s:", peerId, e);
+      });
 
-        socket.on('peer', (peerData: any) => {
-          const peerId: number = peerData.peerId;
-          const peer = new Peer({ initiator: peerData.initiator, trickle: useTrickle , stream:this.localStream});
+      peer.on("connect", () => {
+        debug("Peer connection established");
+        peer.send("hey peer");
+      });
 
-          debug('Peer available for connection discovered from signalling server, Peer ID: %s', peerId);
+      peer.on("data", data => {
+        debug("Recieved data from peer:", data);
+      });
 
-          // Catching signal event from socket.io server
-          socket.on('signal', (data) => {
-            if (data.peerId === peerId) { // If not true this is not my room partner
-              debug('Received signalling data', data, 'from Peer ID:', peerId);
-              peer.signal(data.signal);
-            }
-          });
+      peer.on("stream", stream => {
+        debug("video stream received");
+        self.remoteStream = stream;
+        self.showRemoteVideo();
+      });
 
-          socket.on('log', (array) => {
-            debug(array);
-          });
-
-          peer.on('signal', (data) => {
-            debug('Advertising  signalling data', data, 'to Peer ID:', peerId);
-            socket.emit('signal', {
-              signal: data,
-              peerId,
-            });
-          });
-
-          peer.on('error', (e) => {
-            debug('Error sending connection to peer %s:', peerId, e);
-          });
-
-          peer.on('connect', () => {
-            debug('Peer connection established');
-            peer.send("hey peer");
-          });
-
-          peer.on('data', (data) => {
-            debug('Recieved data from peer:', data);
-          });
-
-          peer.on('stream', (stream) => {
-            debug('video stream received');
-            this.remoteStream = stream;
-            this.showRemoteVideo();
-          });
-          // Remember peers in the list though only one on one is allowed
-          this.peers[peerId] = peer;
-        });
-    }
-};
+      // Remember peers in the list though only one on one is allowed
+      self.peers[peerId] = peer;
+    });
+  }
+}
 </script>
 

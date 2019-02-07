@@ -5,7 +5,7 @@ import * as socketIO from 'socket.io';
 import { Server } from 'http';
 
 let io: SocketIO.Server; //
-const DEFAULT_PEER_COUNT:number = 5;
+const DEFAULT_PEER_COUNT: number = 5;
 
 export class SocketIO {
 
@@ -27,7 +27,7 @@ export class SocketIO {
       array.push.apply(array, args);
       socket.emit('log', array);
     }
-     
+
     /**
      * Create or join room
      */
@@ -55,7 +55,7 @@ export class SocketIO {
         socket.emit('full', room);
         return;
       }
-      
+
       // Works for all socket pairs but for now we have only one
 
       // Message over server
@@ -69,17 +69,23 @@ export class SocketIO {
 
       socket.on('signal', (data) => {
         log('Signal:', data);
-        socket.to(room).emit('signal', {
-          signal: data.signal,
-          peerId: socket.id,
-        });
+        socket
+          .to(room)
+          .emit('signal', {
+            signal: data.signal,
+            peerId: socket.id,
+          });
       });
 
+      socket.on('disconnect', _ => {
+        log('received bye');
+        socket
+          .to(room)
+          .emit('bye');
+      });
     });
 
-    socket.on('bye', () => {
-      log('received bye');
-    });
+
 
 
   }
@@ -88,7 +94,7 @@ export class SocketIO {
   private static emitToAllPeersInRoom(socket: SocketIO.Socket, room: string) {
     io
       .in(room)
-      .clients((err , clients) => { // clients is array of socket ids in given room, connect all to new peer
+      .clients((err, clients) => { // clients is array of socket ids in given room, connect all to new peer
         clients.forEach((roomSocketId: string) => {
           let roomSocket: SocketIO.Socket = io.sockets.connected[roomSocketId];
           // pair peer to all other nodes
@@ -100,10 +106,10 @@ export class SocketIO {
             // now send a peer event to new node
             socket.emit('peer', {
               peerId: roomSocketId,
-              initiator: false, 
+              initiator: false,
             });
-          } 
+          }
         });
-    });
+      });
   }
 }

@@ -391,11 +391,17 @@
     transition: 360ms;
   }
   
-  #hangup:hover {
+  #hangup.active:hover {
     background: #dd2c00;
   }
-  #hangup:hover circle {
+  #hangup.active:hover circle {
     fill: #dd2c00;
   }
   
+  #hangup:hover {
+    background: #288a47;
+  }
+  #hangup:hover circle {
+    fill: #288a47;
+  }
   /*////// icons CSS end /////////////////////////*/
