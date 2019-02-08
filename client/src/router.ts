@@ -10,14 +10,14 @@ export default new Router({
   base: process.env.BASE_URL,
   routes: [
     {
-      path: '/',
-      name: 'Home',
-      component: Home,
-    },
+      path: '/:room',
+      name: 'Chat',
+      component: Chat,
+    },/*
     {
       path: '/r/:room',
       name: 'Chat',
       component: Chat,
-    },
+    }, */
   ],
 });

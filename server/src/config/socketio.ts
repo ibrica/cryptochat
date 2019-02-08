@@ -36,7 +36,7 @@ export class SocketIO {
 
       let clientsInRoom = io.sockets.adapter.rooms[room];
       let numClients = clientsInRoom ? Object.keys(clientsInRoom.sockets).length : 0;
-      log('Room ' + room + ' now has ' + numClients + ' client(s)');
+
 
       if (numClients === 0) {
         // New room created (When do you cloese it?)
@@ -44,9 +44,9 @@ export class SocketIO {
         log('Client ID ' + socket.id + ' created room ' + room);
         // socket.emit('created', room, socket.id);
       } else if (numClients < DEFAULT_PEER_COUNT) {
-        log('Client ID ' + socket.id + ' joined room ' + room);
         // io.sockets.in(room).emit('join', room);
         socket.join(room);
+        log('Client ID ' + socket.id + ' joined room ' + room);
         // socket.emit('joined', room, socket.id);
         // Now emit peer event back to connected socket
         SocketIO.emitToAllPeersInRoom(socket, room);
@@ -55,6 +55,8 @@ export class SocketIO {
         socket.emit('full', room);
         return;
       }
+
+      log ("Clients in the room: " + ++numClients);
 
       // Works for all socket pairs but for now we have only one
 
@@ -81,7 +83,7 @@ export class SocketIO {
         log('received bye');
         socket
           .to(room)
-          .emit('bye');
+          .emit('bye', socket.id);
       });
     });
 

@@ -110,7 +110,7 @@
         @click="hangup"
       >
         <circle cx="24" cy="24" r="34">
-          <title>Call / Hangup</title>
+          <title>Join / Leave room</title>
         </circle>
         <path
           transform="scale(0.7), translate(11,10)"
@@ -146,8 +146,8 @@ export default class Chat extends Vue {
   hangupIcon: HTMLElement;
   localStream: MediaStream | null;
   remoteStream: MediaStream | null;
-  peers: Peer.Instance[] = [];
   socket: SocketIOClient.Socket;
+  peers = new Map<string, Peer.Instance>();
 
   async mounted() {
     this.localVideo = document.querySelector("#local-video");
@@ -207,13 +207,30 @@ export default class Chat extends Vue {
   }
 
   toggleAudioMute(): void {
-    // Do nothing for now
-    this.showLocalVideo();
+    let audioTracks: MediaStreamTrack[] = this.localStream.getAudioTracks();
+    if (audioTracks.length === 0) {
+      debug('No local audio available.');
+      return;
+    }
+    debug('Toggling audio mute state.');
+    for (let i = 0; i < audioTracks.length; ++i) {
+      audioTracks[i].enabled = !audioTracks[i].enabled;
+    }
+    debug('Audio ' + (audioTracks[0].enabled ? 'unmuted.' : 'muted.'));
   }
 
   toggleVideoMute(): void {
-    // Do nothing for now
-    this.showRemoteVideo();
+      var videoTracks: MediaStreamTrack[] = this.localStream.getVideoTracks();
+      if (videoTracks.length === 0) {
+        debug('No local video available.');
+        return;
+      }
+
+      debug('Toggling video mute state.');
+      for (var i = 0; i < videoTracks.length; ++i) {
+        videoTracks[i].enabled = !videoTracks[i].enabled;
+      }
+      debug('Video ' + (videoTracks[0].enabled ? 'unmuted.' : 'muted.'));
   }
 
   toggleFullscreen(): void {
@@ -309,7 +326,7 @@ export default class Chat extends Vue {
      */
     socket.on("bye", socketId => {
       self.peers[socketId].destroy();
-      // removed?
+      self.peers.delete(socketId);
       self.showLocalVideo();    
     });
 
@@ -318,7 +335,7 @@ export default class Chat extends Vue {
     });
 
     socket.on("peer", (peerData: any) => {
-      const peerId: number = peerData.peerId;
+      const peerId: string = peerData.peerId;
       const peer = new Peer({
         initiator: peerData.initiator,
         trickle: useTrickle,
