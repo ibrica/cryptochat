@@ -24,15 +24,12 @@ const privateKey = port === 3000
       : fs.readFileSync('/etc/letsencrypt/live/eter.io/privkey.pem', 'utf8');
 const certificate = port === 3000 
       ? fs.readFileSync('server.cert')
-      : fs.readFileSync('/etc/letsencrypt/live/eter.io/cert.pem', 'utf8');
-const ca = port === 3000
-      ? undefined
-      : fs.readFileSync('/etc/letsencrypt/live/eter.io/chain.pem', 'utf8');
+      : fs.readFileSync('/etc/letsencrypt/live/eter.io/fullchain.pem', 'utf8');
+
 
 const credentials = {
 	key: privateKey,
-	cert: certificate,
-	ca: ca
+	cert: certificate
 };
 const server = https.createServer(credentials, app);
 /**
