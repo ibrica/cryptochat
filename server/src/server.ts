@@ -17,11 +17,24 @@ app.set('port', port);
 /**
  * Create HTTP server.
  */
+// Certificates
 
-const server = https.createServer({
-                  key: fs.readFileSync('server.key'),
-                  cert: fs.readFileSync('server.cert'),
-               }, app);
+const privateKey = port === 3000 
+      ? fs.readFileSync('server.key')
+      : fs.readFileSync('/etc/letsencrypt/live/eter.io/privkey.pem', 'utf8');
+const certificate = port === 3000 
+      ? fs.readFileSync('server.cert')
+      : fs.readFileSync('/etc/letsencrypt/live/eter.io/cert.pem', 'utf8');
+const ca = port === 3000
+      ? undefined
+      : fs.readFileSync('/etc/letsencrypt/live/eter.io/chain.pem', 'utf8');
+
+const credentials = {
+	key: privateKey,
+	cert: certificate,
+	ca: ca
+};
+const server = https.createServer(credentials, app);
 /**
  * Listen on provided port, on all network interfaces.
  */

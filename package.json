@@ -7,7 +7,7 @@
     "test": "cd server && npm run test && cd ../client && npm run lint && cd ../",
     "start": "cd server && npm start && cd ..",
     "dev": "cd server && npm run dev && cd ../client && npm run dev && cd ../",
-    "install": "npm run installserver && npm run installclient",
+    "install": "npm run installServer && npm run installClient",
     "buildClient": "cd client && npm run build && cd ../",
     "buildServer": "cd server && npm run build && cd ../",
     "installClient": "cd client && npm i && cd ../",
