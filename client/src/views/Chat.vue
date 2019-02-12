@@ -144,8 +144,8 @@ export default class Chat extends Vue {
   remoteVideo: HTMLVideoElement;
   videosDiv: HTMLDivElement;
   hangupIcon: HTMLElement;
-  localStream: MediaStream | null;
-  remoteStream: MediaStream | null;
+  localStream: MediaStream | undefined;
+  remoteStream: MediaStream | undefined;
   socket: SocketIOClient.Socket;
   peers = new Map<string, Peer.Instance>();
 
@@ -192,7 +192,7 @@ export default class Chat extends Vue {
     if (this.remoteStream) {
       this.remoteVideo.srcObject = this.remoteStream;
       this.miniVideo.srcObject = this.localStream;
-      this.localVideo.srcObject = null;
+      this.localVideo.srcObject = undefined;
       // Transition opacity from 0 to 1 for the remote and mini videos.
       this.activate(this.remoteVideo);
       this.activate(this.miniVideo);
@@ -209,28 +209,28 @@ export default class Chat extends Vue {
   toggleAudioMute(): void {
     let audioTracks: MediaStreamTrack[] = this.localStream.getAudioTracks();
     if (audioTracks.length === 0) {
-      debug('No local audio available.');
+      debug("No local audio available.");
       return;
     }
-    debug('Toggling audio mute state.');
+    debug("Toggling audio mute state.");
     for (let i = 0; i < audioTracks.length; ++i) {
       audioTracks[i].enabled = !audioTracks[i].enabled;
     }
-    debug('Audio ' + (audioTracks[0].enabled ? 'unmuted.' : 'muted.'));
+    debug("Audio " + (audioTracks[0].enabled ? "unmuted." : "muted."));
   }
 
   toggleVideoMute(): void {
-      var videoTracks: MediaStreamTrack[] = this.localStream.getVideoTracks();
-      if (videoTracks.length === 0) {
-        debug('No local video available.');
-        return;
-      }
+    var videoTracks: MediaStreamTrack[] = this.localStream.getVideoTracks();
+    if (videoTracks.length === 0) {
+      debug("No local video available.");
+      return;
+    }
 
-      debug('Toggling video mute state.');
-      for (var i = 0; i < videoTracks.length; ++i) {
-        videoTracks[i].enabled = !videoTracks[i].enabled;
-      }
-      debug('Video ' + (videoTracks[0].enabled ? 'unmuted.' : 'muted.'));
+    debug("Toggling video mute state.");
+    for (var i = 0; i < videoTracks.length; ++i) {
+      videoTracks[i].enabled = !videoTracks[i].enabled;
+    }
+    debug("Video " + (videoTracks[0].enabled ? "unmuted." : "muted."));
   }
 
   toggleFullscreen(): void {
@@ -271,7 +271,7 @@ export default class Chat extends Vue {
   hangup(): void {
     if (this.socket && this.socket.connected) {
       // Hangup, check out from room
-      this.remoteStream = null;
+      this.remoteStream = undefined;
       this.socket.close();
       this.showLocalVideo();
       this.deactivate(this.hangupIcon);
@@ -302,7 +302,11 @@ export default class Chat extends Vue {
 
   async chat() {
     const self = this;
-    const socket = io("https://localhost:3000");
+    const socketioURL: string =
+      window.location.hostname == "localhost"
+        ? "https://localhost:3000"
+        : window.location.href;
+    const socket = io(socketioURL);
     this.socket = socket;
 
     const useTrickle: boolean = true; // Use trickle default
@@ -327,7 +331,7 @@ export default class Chat extends Vue {
     socket.on("bye", socketId => {
       self.peers[socketId].destroy();
       self.peers.delete(socketId);
-      self.showLocalVideo();    
+      self.showLocalVideo();
     });
 
     socket.on("full", (r: string) => {
@@ -393,4 +397,3 @@ export default class Chat extends Vue {
   }
 }
 </script>
-

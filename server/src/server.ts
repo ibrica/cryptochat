@@ -20,8 +20,8 @@ app.set('port', port);
 
 const server = https.createServer({
                   key: fs.readFileSync('server.key'),
-                  cert: fs.readFileSync('server.cert')
-                }, app);
+                  cert: fs.readFileSync('server.cert'),
+               }, app);
 /**
  * Listen on provided port, on all network interfaces.
  */
