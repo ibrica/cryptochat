@@ -302,7 +302,7 @@ export default class Chat extends Vue {
 
   async chat() {
     const self = this;
-    const socket = io("localhost:3000");
+    const socket = io("https://localhost:3000");
     this.socket = socket;
 
     const useTrickle: boolean = true; // Use trickle default

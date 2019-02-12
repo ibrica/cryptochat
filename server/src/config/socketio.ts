@@ -2,7 +2,7 @@
  * Start and configure socket.io
  */
 import * as socketIO from 'socket.io';
-import { Server } from 'http';
+import { Server } from 'https';
 
 let io: SocketIO.Server; //
 const DEFAULT_PEER_COUNT: number = 5;
@@ -12,7 +12,7 @@ export class SocketIO {
   public static bootstrap = (httpServer: Server): void => {
     // Start server
     new SocketIO(httpServer);
-  }
+  };
 
   constructor(httpServer: Server) {
     io = socketIO(httpServer, {});

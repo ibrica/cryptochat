@@ -2,7 +2,8 @@
  * Application server
  */
 import app from './app';
-import * as http from 'http';
+import * as fs from 'fs';
+import * as https from 'https';
 import {SocketIO} from  './config/socketio';
 const debug = require('debug')('cryptochat:server');
 
@@ -17,8 +18,10 @@ app.set('port', port);
  * Create HTTP server.
  */
 
-const server = http.createServer(app);
-
+const server = https.createServer({
+                  key: fs.readFileSync('server.key'),
+                  cert: fs.readFileSync('server.cert')
+                }, app);
 /**
  * Listen on provided port, on all network interfaces.
  */
