@@ -305,7 +305,7 @@ export default class Chat extends Vue {
     const socketioURL: string =
       window.location.hostname == "localhost"
         ? "https://localhost:3000"
-        : window.location.href;
+        : window.location.origin;
     const socket = io(socketioURL);
     this.socket = socket;
 
