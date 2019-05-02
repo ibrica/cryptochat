@@ -144,8 +144,8 @@ export default class Chat extends Vue {
   remoteVideo: HTMLVideoElement;
   videosDiv: HTMLDivElement;
   hangupIcon: HTMLElement;
-  localStream: MediaStream | undefined;
-  remoteStream: MediaStream | undefined;
+  localStream: MediaStream | null;
+  remoteStream: MediaStream | null;
   socket: SocketIOClient.Socket;
   peers = new Map<string, Peer.Instance>();
 
@@ -192,7 +192,7 @@ export default class Chat extends Vue {
     if (this.remoteStream) {
       this.remoteVideo.srcObject = this.remoteStream;
       this.miniVideo.srcObject = this.localStream;
-      this.localVideo.srcObject = undefined;
+      this.localVideo.srcObject = null;
       // Transition opacity from 0 to 1 for the remote and mini videos.
       this.activate(this.remoteVideo);
       this.activate(this.miniVideo);
@@ -271,7 +271,7 @@ export default class Chat extends Vue {
   hangup(): void {
     if (this.socket && this.socket.connected) {
       // Hangup, check out from room
-      this.remoteStream = undefined;
+      this.remoteStream = null;
       this.socket.close();
       this.showLocalVideo();
       this.deactivate(this.hangupIcon);
